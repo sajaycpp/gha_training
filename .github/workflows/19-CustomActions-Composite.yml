@@ -1,0 +1,72 @@
+
+name: 19-CustomActions-Composite
+run-name: 19-CustomActions-Composite
+
+on:
+  workflow_dispatch:
+
+env:
+  working-directory: ./  # Default working directory
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout repository
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Java & Maven dependencies
+      - name: Setup Java & Maven dependencies
+        uses: ./.github/actions/composite-cache-deps
+        with:
+          java-version: 11
+          working-dir: ${{ env.working-directory }}  # Use specified working directory
+
+      # Step 3: Run tests
+      - name: Run tests
+        run: mvn test
+
+      # Step 4: Build with Maven
+      - name: Build with Maven
+        run: mvn clean install
+
+—----------------------------------------------------------------------------------------------------------------------------
+20-Reuseable workflow
+20-ReusableWorkflows-Defnition.yml
+—----------------------------------------------------------------------------------------------------------------------------
+name: 20-Reusable-Workflows - Reusable Definition
+
+on:
+  workflow_call:
+    inputs:
+      target-directory:
+        type: string
+        required: true
+    outputs:
+      build-status:
+        description: The status of the build process
+        value: ${{ jobs.deploy.outputs.build-status }}
+      url:
+        description: The url of the deployed version
+        value: ${{ jobs.deploy.outputs.url }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    outputs:
+      build-status: ${{ steps.build.outputs.build-status }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Build
+        id: build
+        run: |
+          echo "Building using directory ${{ inputs.target-directory }}"
+          echo "build-status=success" >> "$GITHUB_OUTPUT"
+      - name: Deploy
+        id: deploy
+        run: |
+          echo "Deploying build artifacts"
+          echo "url=https://www.google.com" >> "$GITHUB_OUTPUT"
