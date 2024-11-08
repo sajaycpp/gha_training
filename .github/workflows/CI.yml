@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Intialize project
         id: set-java-version
-        run: echo "::set-output name=java-version::${{ github.event.inputs.java-version }}"
+        run: echo "::set-output name=java-version::${{ inputs.java-version }}"
 
   build:
     runs-on: ubuntu-latest
